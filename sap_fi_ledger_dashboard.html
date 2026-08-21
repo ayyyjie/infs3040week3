@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Ledger — SAP Financial Accounting, Week 3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBFBF6;
+    --stripe:#E9F0E2;
+    --ink:#1B2E22;
+    --ink-soft:#4A5C4F;
+    --navy:#1F3A5F;
+    --navy-soft:#456087;
+    --red:#8C2F2F;
+    --red-soft:#A85B5B;
+    --gold:#B4831F;
+    --gold-soft:#E8D2A0;
+    --line:#C6D3C0;
+    --line-strong:#9FB299;
+    --card:#FFFFFF;
+    --radius:6px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:28px 20px 80px;}
+
+  /* Header */
+  header{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:16px;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:16px;
+    margin-bottom:6px;
+    flex-wrap:wrap;
+  }
+  .masthead h1{
+    font-family:'IBM Plex Serif',serif;
+    font-weight:600;
+    font-size:30px;
+    margin:0 0 4px;
+    letter-spacing:0.2px;
+  }
+  .masthead p{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:13px;
+    font-family:'IBM Plex Mono',monospace;
+    text-transform:uppercase;
+    letter-spacing:1px;
+  }
+  .folio{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    text-align:right;
+    line-height:1.6;
+  }
+
+  /* Tabs styled as ledger book dividers */
+  nav.tabs{
+    display:flex;
+    gap:2px;
+    margin:20px 0 0;
+    overflow-x:auto;
+    border-bottom:1px solid var(--line-strong);
+  }
+  nav.tabs button{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    letter-spacing:0.4px;
+    text-transform:uppercase;
+    background:var(--stripe);
+    color:var(--ink-soft);
+    border:1px solid var(--line-strong);
+    border-bottom:none;
+    padding:10px 16px;
+    border-radius:6px 6px 0 0;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:background .15s, color .15s;
+  }
+  nav.tabs button:hover{ background:#DEE9D6; }
+  nav.tabs button:focus-visible{ outline:2px solid var(--gold); outline-offset:-2px; }
+  nav.tabs button.active{
+    background:var(--card);
+    color:var(--ink);
+    font-weight:600;
+    border-bottom:1px solid var(--card);
+    position:relative;
+    top:1px;
+  }
+
+  main.panel{
+    background:var(--card);
+    border:1px solid var(--line-strong);
+    border-top:none;
+    padding:28px clamp(16px,4vw,36px) 32px;
+    min-height:420px;
+  }
+  section{ display:none; animation:fade .25s ease; }
+  section.active{ display:block; }
+  @keyframes fade{ from{opacity:0;} to{opacity:1;} }
+
+  h2.section-title{
+    font-family:'IBM Plex Serif',serif;
+    font-weight:600;
+    font-size:22px;
+    margin:0 0 4px;
+  }
+  .section-sub{
+    color:var(--ink-soft);
+    font-size:14px;
+    margin:0 0 24px;
+  }
+  p{ line-height:1.65; font-size:15px; }
+  .lede{ font-size:15.5px; line-height:1.7; max-width:640px; }
+
+  /* Ledger ruled lines background helper */
+  .ruled{
+    background-image: repeating-linear-gradient(var(--card), var(--card) 27px, var(--line) 28px);
+    border:1px solid var(--line-strong);
+    border-radius:var(--radius);
+    padding:16px 18px;
+  }
+
+  /* Equation strip */
+  .equation{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:14px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:clamp(18px,3.2vw,26px);
+    font-weight:600;
+    padding:28px 10px;
+    margin:20px 0 28px;
+    background:var(--stripe);
+    border:1px solid var(--line-strong);
+    border-radius:var(--radius);
+  }
+  .equation .assets{ color:var(--navy); }
+  .equation .lie{ color:var(--red); }
+  .equation .eq-sign{ color:var(--ink-soft); font-weight:400; }
+
+  /* T account */
+  .t-wrap{ display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start; margin-top:18px; }
+  .t-account{
+    flex:1 1 300px;
+    min-width:260px;
+  }
+  .t-account h3{
+    font-family:'IBM Plex Serif',serif;
+    font-size:16px;
+    text-align:center;
+    margin:0 0 8px;
+  }
+  .t-body{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    border-top:2px solid var(--ink);
+  }
+  .t-side{ padding:12px 10px; min-height:120px; font-family:'IBM Plex Mono',monospace; font-size:13px; }
+  .t-side.debit{ border-right:1.5px solid var(--ink); }
+  .t-side .side-label{ font-size:11px; text-transform:uppercase; letter-spacing:1px; color:var(--ink-soft); margin-bottom:8px; display:block; }
+  .t-side.debit .side-label{ color:var(--navy); }
+  .t-side.credit .side-label{ color:var(--red); }
+  .entry-line{ padding:4px 0; border-bottom:1px dashed var(--line); }
+  .entry-line.pulse{ animation:pop .5s ease; }
+  @keyframes pop{ 0%{ background:var(--gold-soft);} 100%{ background:transparent; } }
+
+  /* controls */
+  .controls{ display:flex; flex-wrap:wrap; gap:10px; margin:18px 0; }
+  .chip{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    padding:8px 14px;
+    border:1px solid var(--line-strong);
+    border-radius:20px;
+    background:var(--paper);
+    cursor:pointer;
+    color:var(--ink);
+    transition:all .15s;
+  }
+  .chip:hover{ border-color:var(--gold); }
+  .chip:focus-visible{ outline:2px solid var(--gold); outline-offset:1px; }
+  .chip.active{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+
+  .btn{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    padding:10px 18px;
+    border-radius:20px;
+    border:1px solid var(--ink);
+    background:var(--ink);
+    color:var(--paper);
+    cursor:pointer;
+  }
+  .btn:hover{ background:var(--navy); border-color:var(--navy); }
+  .btn:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+  .btn.secondary{ background:transparent; color:var(--ink); }
+
+  .callout{
+    background:var(--stripe);
+    border-left:3px solid var(--gold);
+    padding:12px 16px;
+    border-radius:0 6px 6px 0;
+    font-size:13.5px;
+    margin-top:16px;
+    line-height:1.6;
+  }
+
+  /* Structural map */
+  .map{
+    border:1px solid var(--line-strong);
+    border-radius:10px;
+    padding:20px;
+    background:var(--stripe);
+  }
+  .map .gl-node{
+    background:var(--card);
+    border:1px solid var(--navy-soft);
+    border-radius:8px;
+    padding:14px 16px;
+    max-width:300px;
+    margin:0 auto 20px;
+    text-align:center;
+    cursor:pointer;
+  }
+  .map .gl-node:hover, .map .gl-node:focus-visible{ border-color:var(--navy); }
+  .subledgers{ display:flex; gap:16px; flex-wrap:wrap; justify-content:center; }
+  .sub-node{
+    flex:1 1 140px;
+    max-width:220px;
+    background:var(--card);
+    border:1px solid var(--red-soft);
+    border-radius:8px;
+    padding:12px 14px;
+    text-align:center;
+    cursor:pointer;
+    font-size:13px;
+  }
+  .sub-node:hover, .sub-node:focus-visible{ border-color:var(--red); }
+  .sub-node .amt{ font-family:'IBM Plex Mono',monospace; color:var(--red); font-weight:600; display:block; margin-top:4px; }
+  .node-label{ font-weight:600; font-size:14px; }
+  .node-sub{ font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+  .map-detail{
+    margin-top:20px;
+    padding:14px 16px;
+    background:var(--card);
+    border:1px solid var(--line-strong);
+    border-radius:6px;
+    font-size:13.5px;
+    min-height:48px;
+    line-height:1.6;
+  }
+  .map-detail .tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    color:var(--gold);
+    display:block;
+    margin-bottom:4px;
+  }
+
+  /* document anatomy */
+  .doc{
+    border:1px solid var(--line-strong);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .doc-header{
+    background:var(--ink);
+    color:var(--paper);
+    padding:10px 16px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  table.doc-lines{ width:100%; border-collapse:collapse; font-family:'IBM Plex Mono',monospace; font-size:13px; }
+  table.doc-lines th{
+    text-align:left;
+    background:var(--stripe);
+    padding:8px 12px;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    color:var(--ink-soft);
+    border-bottom:1px solid var(--line-strong);
+  }
+  table.doc-lines td{ padding:10px 12px; border-bottom:1px solid var(--line); }
+  table.doc-lines td.dr{ color:var(--navy); font-weight:600; }
+  table.doc-lines td.cr{ color:var(--red); font-weight:600; }
+  table.doc-lines tr.highlight td{ background:var(--gold-soft); }
+
+  /* quiz */
+  .quiz-card{
+    background:var(--stripe);
+    border:1px solid var(--line-strong);
+    border-radius:10px;
+    padding:20px;
+  }
+  .q-progress{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft); margin-bottom:8px; }
+  .q-prompt{ font-family:'IBM Plex Serif',serif; font-size:17px; margin:0 0 16px; }
+  .q-options{ display:flex; flex-direction:column; gap:8px; }
+  .q-opt{
+    text-align:left;
+    background:var(--card);
+    border:1px solid var(--line-strong);
+    border-radius:6px;
+    padding:10px 14px;
+    font-size:14px;
+    cursor:pointer;
+    font-family:'IBM Plex Sans',sans-serif;
+  }
+  .q-opt:hover{ border-color:var(--gold); }
+  .q-opt:focus-visible{ outline:2px solid var(--gold); outline-offset:1px; }
+  .q-opt.correct{ background:#E4EFDE; border-color:#4F7A46; }
+  .q-opt.wrong{ background:#F6E1E1; border-color:var(--red); }
+  .q-explain{ margin-top:14px; font-size:13.5px; padding:12px 14px; background:var(--card); border-radius:6px; border-left:3px solid var(--gold); display:none; line-height:1.6; }
+  .q-explain.show{ display:block; }
+  .q-footer{ display:flex; justify-content:space-between; align-items:center; margin-top:18px; }
+  .score-pill{ font-family:'IBM Plex Mono',monospace; font-size:12.5px; background:var(--ink); color:var(--paper); padding:6px 12px; border-radius:20px; }
+
+  @media (max-width:640px){
+    .t-wrap{ flex-direction:column; }
+    header{ flex-direction:column; align-items:flex-start; }
+    .folio{ text-align:left; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="masthead">
+      <h1>The Ledger</h1>
+      <p>INFS3040 · Week 3 · Financial Accounting in SAP</p>
+    </div>
+    <div class="folio">Client 150<br>Company code · GBI</div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Lesson sections">
+    <button class="tab-btn active" data-tab="equation" role="tab" aria-selected="true">01 · The equation</button>
+    <button class="tab-btn" data-tab="debits" role="tab" aria-selected="false">02 · Debit &amp; credit lab</button>
+    <button class="tab-btn" data-tab="structure" role="tab" aria-selected="false">03 · SAP ledger map</button>
+    <button class="tab-btn" data-tab="documents" role="tab" aria-selected="false">04 · Documents &amp; reporting</button>
+    <button class="tab-btn" data-tab="quiz" role="tab" aria-selected="false">05 · Quiz</button>
+  </nav>
+
+  <main class="panel">
+
+    <!-- 01 EQUATION -->
+    <section id="equation" class="active">
+      <h2 class="section-title">The accounting equation</h2>
+      <p class="section-sub">Everything downstream — SAP, T-accounts, reconciliation accounts — is scaffolding built on top of this one line.</p>
+
+      <div class="equation">
+        <span class="assets">Assets</span>
+        <span class="eq-sign">=</span>
+        <span class="lie">Liabilities</span>
+        <span class="eq-sign">+</span>
+        <span class="lie">Owners' equity</span>
+      </div>
+
+      <p class="lede">Read it as two views of the same company: the left side is <strong>what it owns</strong>. The right side is <strong>how that ownership was financed</strong> — either by owing someone else money, or by the owners' own stake. The equation must always balance, transaction by transaction. That balancing act is what "double-entry" means.</p>
+
+      <div class="callout">
+        Because assets sit on the opposite side of the equation from liabilities and equity, they behave <em>oppositely</em> when it comes to debits and credits — that's the whole source of confusion in Week 3, and it's solved in the next tab.
+      </div>
+    </section>
+
+    <!-- 02 DEBIT/CREDIT LAB -->
+    <section id="debits">
+      <h2 class="section-title">Debit &amp; credit lab</h2>
+      <p class="section-sub">Pick a scenario. Watch which side of the T-account lights up, and why.</p>
+
+      <div class="controls" id="scenario-controls">
+        <button class="chip active" data-scenario="cash">Buy paper — pay by debit card</button>
+        <button class="chip" data-scenario="credit">Buy paper — on credit from supplier</button>
+      </div>
+
+      <div class="t-wrap" id="t-accounts"></div>
+
+      <div class="callout" id="lab-explain">
+        Paying by card: Bank (an asset) goes <strong>down</strong> → credit. Supplies (an asset) goes <strong>up</strong> → debit. Two assets, opposite directions, equation stays balanced.
+      </div>
+
+      <div class="callout" style="margin-top:10px; border-left-color: var(--navy);">
+        <strong>Rule of thumb:</strong> Assets → debit increases, credit decreases. Liabilities &amp; equity → credit increases, debit decreases. Derive it, don't memorise it: assets sit opposite liabilities/equity in the equation, so they move opposite ways.
+      </div>
+    </section>
+
+    <!-- 03 SAP STRUCTURE -->
+    <section id="structure">
+      <h2 class="section-title">SAP ledger map</h2>
+      <p class="section-sub">Click any block. Vendor sub-ledger balances roll up through a reconciliation account into the general ledger — click through and watch the numbers add up.</p>
+
+      <div class="map">
+        <div class="gl-node" tabindex="0" data-info="gl">
+          <div class="node-label">Accounts payable — reconciliation account</div>
+          <div class="node-sub">General ledger · cannot be posted to directly</div>
+          <div class="amt" id="gl-total" style="color:var(--navy); font-family:'IBM Plex Mono',monospace; margin-top:6px; font-weight:600;">$850</div>
+        </div>
+        <div class="subledgers">
+          <div class="sub-node" tabindex="0" data-info="v1">Vendor 100234<span class="amt">$200</span></div>
+          <div class="sub-node" tabindex="0" data-info="v2">Vendor 100435<span class="amt">$250</span></div>
+          <div class="sub-node" tabindex="0" data-info="v3">Vendor 100621<span class="amt">$100</span></div>
+          <div class="sub-node" tabindex="0" data-info="v4">Vendor 100846<span class="amt">$300</span></div>
+        </div>
+        <div class="map-detail" id="map-detail">
+          <span class="tag">Tap a block</span>
+          Start with the reconciliation account, or a vendor, to see how they connect.
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 DOCUMENTS + REPORTING -->
+    <section id="documents">
+      <h2 class="section-title">Documents &amp; reporting</h2>
+      <p class="section-sub">An FI document is the system's actual record of a transaction. It always has a header, and a detail section with at least one debit line and one credit line.</p>
+
+      <div class="doc">
+        <div class="doc-header">
+          <span>FI document · type SA</span>
+          <span>Company code 1000 · posted today</span>
+        </div>
+        <table class="doc-lines">
+          <thead><tr><th>Line item</th><th>Account</th><th>Debit</th><th>Credit</th></tr></thead>
+          <tbody id="doc-body">
+            <tr data-line="1"><td>001</td><td>Supplies (asset)</td><td class="dr">4.99</td><td>—</td></tr>
+            <tr data-line="2"><td>002</td><td>Accounts payable</td><td>—</td><td class="cr">4.99</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">Click a row to see which posting key drives it — a debit line and a credit line, always balancing to zero net.</div>
+
+      <div style="margin-top:30px; display:flex; gap:20px; flex-wrap:wrap;">
+        <div class="ruled" style="flex:1 1 260px;">
+          <strong style="font-family:'IBM Plex Serif',serif;">Display balances</strong>
+          <p style="margin:8px 0 0; font-size:13.5px;">Path: Accounting → Financial Accounting → General Ledger → Account → Display Balances (New)</p>
+          <p style="margin:6px 0 0; font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--navy);">T-code: FAGLB03</p>
+        </div>
+        <div class="ruled" style="flex:1 1 260px;">
+          <strong style="font-family:'IBM Plex Serif',serif;">Audit trail</strong>
+          <p style="margin:8px 0 0; font-size:13.5px;">Works both directions: start at a financial statement balance and trace back to the transactions, or start at a transaction and trace forward to the balance it affects.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 QUIZ -->
+    <section id="quiz">
+      <h2 class="section-title">Check your understanding</h2>
+      <p class="section-sub">Six questions, straight from the lecture.</p>
+      <div class="quiz-card">
+        <div class="q-progress" id="q-progress">Question 1 of 6</div>
+        <p class="q-prompt" id="q-prompt"></p>
+        <div class="q-options" id="q-options"></div>
+        <div class="q-explain" id="q-explain"></div>
+        <div class="q-footer">
+          <button class="btn secondary" id="q-next" disabled>Next question</button>
+          <span class="score-pill" id="q-score">Score: 0 / 6</span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+// ---------- Tabs ----------
+const tabBtns = document.querySelectorAll('.tab-btn');
+const sections = document.querySelectorAll('main.panel > section');
+tabBtns.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    tabBtns.forEach(b=>{ b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+    btn.classList.add('active'); btn.setAttribute('aria-selected','true');
+    sections.forEach(s=>s.classList.remove('active'));
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ---------- Debit/credit lab ----------
+const scenarios = {
+  cash: {
+    accounts: [
+      { name:'Bank (asset)', debit:[], credit:[{label:'Paid for supplies', amt:'4.99'}] },
+      { name:'Supplies (asset)', debit:[{label:'Received supplies', amt:'4.99'}], credit:[] }
+    ],
+    explain: "Paying by card: Bank (an asset) goes <strong>down</strong> \u2192 credit. Supplies (an asset) goes <strong>up</strong> \u2192 debit. Two assets, opposite directions, equation stays balanced."
+  },
+  credit: {
+    accounts: [
+      { name:'Accounts payable (liability)', debit:[], credit:[{label:'Owe supplier', amt:'4.99'}] },
+      { name:'Supplies (asset)', debit:[{label:'Received supplies', amt:'4.99'}], credit:[] }
+    ],
+    explain: "Buying on credit: Supplies (an asset) still goes <strong>up</strong> \u2192 debit. But instead of Bank moving, Accounts Payable (a liability) goes <strong>up</strong> \u2192 and liabilities increase on the <strong>credit</strong> side, not debit. That's the flip that trips people up."
+  }
+};
+
+function renderTAccounts(key){
+  const data = scenarios[key];
+  const wrap = document.getElementById('t-accounts');
+  wrap.innerHTML = '';
+  data.accounts.forEach(acc=>{
+    const div = document.createElement('div');
+    div.className = 't-account';
+    const debitLines = acc.debit.map(e=>`<div class="entry-line pulse">${e.label} — <strong>${e.amt}</strong></div>`).join('');
+    const creditLines = acc.credit.map(e=>`<div class="entry-line pulse">${e.label} — <strong>${e.amt}</strong></div>`).join('');
+    div.innerHTML = `
+      <h3>${acc.name}</h3>
+      <div class="t-body">
+        <div class="t-side debit"><span class="side-label">Debit</span>${debitLines}</div>
+        <div class="t-side credit"><span class="side-label">Credit</span>${creditLines}</div>
+      </div>`;
+    wrap.appendChild(div);
+  });
+  document.getElementById('lab-explain').innerHTML = data.explain;
+}
+document.querySelectorAll('#scenario-controls .chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    document.querySelectorAll('#scenario-controls .chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    renderTAccounts(chip.dataset.scenario);
+  });
+});
+renderTAccounts('cash');
+
+// ---------- SAP structure map ----------
+const mapInfo = {
+  gl: { tag:'General ledger account', text:'This is a reconciliation account — a real GL account that consolidates all four vendor balances below it ($200 + $250 + $100 + $300 = $850). You can never post to it directly; it only ever reflects the sum of the sub-ledger.' },
+  v1: { tag:'Vendor sub-ledger', text:'Vendor 100234 owes $200 from a specific purchase. This detail lives one layer below the GL — the GL never sees this vendor by name, only the total.' },
+  v2: { tag:'Vendor sub-ledger', text:'Vendor 100435 owes $250. Every vendor gets its own sub-ledger account so you can track exactly who you owe, without cluttering the general ledger.' },
+  v3: { tag:'Vendor sub-ledger', text:'Vendor 100621 owes $100. Same logic: individual detail, rolled up automatically.' },
+  v4: { tag:'Vendor sub-ledger', text:'Vendor 100846 owes $300. Add all four vendors together and you get the $850 sitting in the Accounts Payable reconciliation account above.' }
+};
+document.querySelectorAll('.gl-node, .sub-node').forEach(node=>{
+  const show = ()=>{
+    const info = mapInfo[node.dataset.info];
+    document.getElementById('map-detail').innerHTML = `<span class="tag">${info.tag}</span>${info.text}`;
+  };
+  node.addEventListener('click', show);
+  node.addEventListener('keydown', e=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); show(); } });
+});
+
+// ---------- Document row highlight ----------
+document.querySelectorAll('#doc-body tr').forEach(row=>{
+  row.style.cursor = 'pointer';
+  row.addEventListener('click', ()=>{
+    document.querySelectorAll('#doc-body tr').forEach(r=>r.classList.remove('highlight'));
+    row.classList.add('highlight');
+  });
+});
+
+// ---------- Quiz ----------
+const quizData = [
+  {
+    q: "A vendor's Accounts Payable balance goes up. Which side of the vendor's sub-ledger account gets the entry?",
+    options: ["Debit", "Credit", "Neither — it posts straight to the reconciliation account", "Both, in equal amounts"],
+    correct: 1,
+    explain: "Accounts Payable is a liability. Liabilities increase on the credit side — same rule applies whether you're looking at the GL reconciliation account or the vendor sub-ledger underneath it."
+  },
+  {
+    q: "Why can't you post directly to a reconciliation account?",
+    options: [
+      "SAP doesn't allow postings on weekends",
+      "It only exists to consolidate and mirror the sum of its sub-ledger — posting there directly would break that sync",
+      "Reconciliation accounts are read-only reports, not real accounts",
+      "Only the finance director has permission"
+    ],
+    correct: 1,
+    explain: "The reconciliation account is a real GL account, but its whole job is to always equal the sum of the sub-ledger postings underneath it. Direct postings would desync it from that detail."
+  },
+  {
+    q: "A publisher ships textbooks on credit to a bookshop. On the publisher's own books, this is recorded as:",
+    options: ["Accounts payable", "Accounts receivable", "Owners' equity", "A cost centre"],
+    correct: 1,
+    explain: "From the publisher's side, they're owed money \u2014 that's an asset, Accounts Receivable. The bookshop records the same transaction as Accounts Payable, since they owe the money."
+  },
+  {
+    q: "Buying supplies on a corporate debit card (paid immediately). What's the dual effect?",
+    options: [
+      "Supplies (asset) up / Bank (asset) down",
+      "Supplies (asset) up / Accounts payable (liability) up",
+      "Bank (asset) up / Supplies (asset) down",
+      "Owners' equity down / Supplies up"
+    ],
+    correct: 0,
+    explain: "Cash purchases move two asset accounts in opposite directions: Supplies increases (debit), Bank decreases (credit). No liability is created because there's nothing owed."
+  },
+  {
+    q: "What SAP transaction code displays G/L account balances?",
+    options: ["FB60", "FAGLB03", "ME21N", "MIRO"],
+    correct: 1,
+    explain: "FAGLB03, reached via Accounting \u2192 Financial Accounting \u2192 General Ledger \u2192 Account \u2192 Display Balances (New)."
+  },
+  {
+    q: "A cost centre belongs to which part of SAP?",
+    options: [
+      "Financial Accounting (FI) — it's a type of GL account",
+      "Controlling (CO) — it's master data that accumulates costs",
+      "Materials Management, tied to a specific vendor",
+      "It's a report, not master data"
+    ],
+    correct: 1,
+    explain: "Cost centres are Controlling (CO) master data \u2014 a bucket that accumulates costs for a department, individual, or project, and can later have those costs charged elsewhere. It's separate from the FI postings covered in this lecture."
+  }
+];
+let qIndex = 0, score = 0, answered = false;
+
+function renderQuestion(){
+  answered = false;
+  const item = quizData[qIndex];
+  document.getElementById('q-progress').textContent = `Question ${qIndex+1} of ${quizData.length}`;
+  document.getElementById('q-prompt').textContent = item.q;
+  const optsWrap = document.getElementById('q-options');
+  optsWrap.innerHTML = '';
+  item.options.forEach((opt, i)=>{
+    const b = document.createElement('button');
+    b.className = 'q-opt';
+    b.textContent = opt;
+    b.addEventListener('click', ()=>selectAnswer(i));
+    optsWrap.appendChild(b);
+  });
+  document.getElementById('q-explain').classList.remove('show');
+  document.getElementById('q-next').disabled = true;
+  document.getElementById('q-next').textContent = (qIndex === quizData.length-1) ? 'See final score' : 'Next question';
+}
+
+function selectAnswer(i){
+  if(answered) return;
+  answered = true;
+  const item = quizData[qIndex];
+  const opts = document.querySelectorAll('.q-opt');
+  opts.forEach((o, idx)=>{
+    if(idx === item.correct) o.classList.add('correct');
+    else if(idx === i) o.classList.add('wrong');
+    o.style.pointerEvents = 'none';
+  });
+  if(i === item.correct) score++;
+  document.getElementById('q-score').textContent = `Score: ${score} / ${quizData.length}`;
+  const ex = document.getElementById('q-explain');
+  ex.textContent = item.explain;
+  ex.classList.add('show');
+  document.getElementById('q-next').disabled = false;
+}
+
+document.getElementById('q-next').addEventListener('click', ()=>{
+  if(qIndex < quizData.length - 1){
+    qIndex++;
+    renderQuestion();
+  } else {
+    document.getElementById('q-prompt').textContent = `Final score: ${score} / ${quizData.length}`;
+    document.getElementById('q-options').innerHTML = '';
+    document.getElementById('q-explain').classList.remove('show');
+    document.getElementById('q-progress').textContent = 'Complete';
+    const btn = document.getElementById('q-next');
+    btn.textContent = 'Restart quiz';
+    btn.onclick = ()=>{ qIndex = 0; score = 0; document.getElementById('q-score').textContent = `Score: 0 / ${quizData.length}`; renderQuestion(); document.getElementById('q-next').onclick = null; document.getElementById('q-next').addEventListener('click', ()=>{}); location.reload ? null : null; };
+    // simple restart: reload the question flow
+    btn.replaceWith(btn.cloneNode(true));
+    document.getElementById('q-next').addEventListener('click', ()=>{
+      qIndex = 0; score = 0;
+      document.getElementById('q-score').textContent = `Score: 0 / ${quizData.length}`;
+      renderQuestion();
+    });
+  }
+});
+
+renderQuestion();
+</script>
+</body>
+</html>
